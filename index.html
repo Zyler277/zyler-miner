@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zyler (ZLR) - Cloud Miner & Portal</title>
+    <meta name="theme-color" content="#0b0f19">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #0b0f19; color: #f1f5f9; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
+        .container { width: 100%; max-width: 480px; padding: 20px; }
+        
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logo-area { display: flex; align-items: center; gap: 8px; }
+        .logo-icon { font-size: 22px; color: #facc15; }
+        .logo-text { font-size: 18px; font-weight: bold; color: #38bdf8; letter-spacing: 1px; }
+        
+        /* 20 Dil Seçim Kutusu */
+        .lang-select { background: #1e293b; border: 1px solid #334155; color: #f1f5f9; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; outline: none; }
+
+        .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 20px; margin-bottom: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        .network-tag { font-size: 12px; color: #94a3b8; text-align: center; margin-bottom: 15px; }
+        
+        label { font-size: 13px; color: #cbd5e1; display: block; margin-bottom: 8px; font-weight: 600; }
+        input[type="text"] { width: 100%; padding: 12px; background: #0f172a; border: 1px solid #334155; border-radius: 10px; color: #fff; font-size: 14px; margin-bottom: 15px; outline: none; }
+        input[type="text"]::placeholder { color: #64748b; }
+
+        .btn-primary { background: linear-gradient(135deg, #22c55e, #15803d); color: white; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; width: 100%; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); transition: 0.3s; text-decoration: none; display: block; text-align: center; }
+        .btn-primary:hover { opacity: 0.9; }
+
+        .btn-secondary { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); transition: 0.3s; text-decoration: none; display: block; text-align: center; }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #b91c1c); color: white; border: none; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 15px; }
+
+        .modes-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 15px; }
+        .mode-btn { background: #0f172a; border: 1px solid #334155; color: #94a3b8; padding: 10px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; text-align: center; }
+        .mode-btn.active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; border-bottom: 1px solid #273548; padding-bottom: 8px; }
+        .stat-label { color: #94a3b8; }
+        .stat-val { font-weight: bold; color: #22c55e; }
+
+        .terminal { background: #090d16; border: 1px solid #1e293b; border-radius: 8px; padding: 10px; font-family: monospace; font-size: 11px; color: #38bdf8; height: 70px; overflow-y: auto; margin-top: 15px; }
+
+        .section-view { display: none; }
+        .section-view.active { display: block; }
+
+        h1 { font-size: 22px; color: #38bdf8; text-align: center; margin-bottom: 10px; }
+        .quote-box { background: #0f172a; border-left: 4px solid #facc15; padding: 12px; border-radius: 0 10px 10px 0; font-style: italic; font-size: 13px; margin-bottom: 15px; color: #e2e8f0; }
+        .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; border-bottom: 1px solid #273548; padding-bottom: 6px; }
+        .footer { margin-top: 20px; text-align: center; font-size: 11px; color: #64748b; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Üst Menü & 20 Dil Seçici (Varsayılan: İngilizce) -->
+        <div class="header">
+            <div class="logo-area">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text" id="t-logo">Zyler Cloud Miner</span>
+            </div>
+            <select class="lang-select" id="langSelector" onchange="changeLanguage(this.value)">
+                <option value="en" selected>English (US/UK)</option>
+                <option value="tr">Türkçe (Türkiye)</option>
+                <option value="zh">中文 (Çin)</option>
+                <option value="hi">हिन्दी (Hindistan)</option>
+                <option value="es">Español (İspanya/Meksika)</option>
+                <option value="bn">বাংলা (Bangladeş)</option>
+                <option value="pt">Português (Brezilya)</option>
+                <option value="ru">Русский (Rusya)</option>
+                <option value="ja">日本語 (Japonya)</option>
+                <option value="pa">ਪੰਜਾਬੀ (Pakistan)</option>
+                <option value="de">Deutsch (Almanya)</option>
+                <option value="jv">Basa Jawa (Endonezya)</option>
+                <option value="ko">한국어 (Güney Kore)</option>
+                <option value="fr">Français (Fransa)</option>
+                <option value="vi">Tiếng Việt (Vietnam)</option>
+                <option value="te">తెలుగు (Hindistan)</option>
+                <option value="mr">मराठी (Hindistan)</option>
+                <option value="ur">اردو (Pakistan)</option>
+                <option value="it">Italiano (İtalya)</option>
+                <option value="fa">فارسی (İran)</option>
+            </select>
+        </div>
+
+        <!-- ================= 1. SECTION: MINING SCREEN ================= -->
+        <div id="minerSection" class="section-view active">
+            <div class="card">
+                <div class="network-tag" id="t-network">Network: BNB Smart Chain (BSC)</div>
+                
+                <div id="loginView">
+                    <label id="t-walletLabel">Your BSC Wallet Address (BEP20):</label>
+                    <input type="text" id="walletInput" placeholder="Paste your 0x... address here">
+                    <button class="btn-primary" onclick="startMining()" id="t-startBtn">Start Mining</button>
+                </div>
+
+                <div id="dashboardView" style="display: none;">
+                    <div class="stat-row"><span class="stat-label" id="t-devicePower">Device Power:</span> <span class="stat-val" style="color:#38bdf8">High Node (8 Core)</span></div>
+                    
+                    <label style="margin-top: 10px;" id="t-powerModeLabel">Mining Power Mode:</label>
+                    <div class="modes-grid">
+                        <div class="mode-btn active" onclick="setMode(100, this)">100% (Max)</div>
+                        <div class="mode-btn" onclick="setMode(50, this)">50% (Mid)</div>
+                        <div class="mode-btn" onclick="setMode(25, this)">25% (Eco)</div>
+                    </div>
+
+                    <div style="text-align: center; font-size: 12px; color: #22c55e; margin-bottom: 12px; font-weight: bold;" id="t-secureActive">SECURE MINING ACTIVE</div>
+
+                    <div class="stat-row"><span class="stat-label" id="t-hashRateLabel">Current Hashrate:</span> <span class="stat-val" id="hashRate">24.41 MH/s</span></div>
+                    <div class="stat-row"><span class="stat-label" id="t-minedLabel">Live Mined:</span> <span class="stat-val" id="minedZlr">0.0000 ZLR</span></div>
+                    <div class="stat-row"><span class="stat-label" id="t-poolLabel">Pool Balance:</span> <span class="stat-val" id="poolZlr">0.0000 ZLR</span></div>
+
+                    <button class="btn-danger" onclick="stopMining()" id="t-stopBtn">Stop Mining</button>
+                    <button class="btn-secondary" style="background:#1e293b; border:1px solid #334155; margin-top:8px;" onclick="resetWallet()" id="t-resetBtn">Change Wallet / Logout</button>
+                </div>
+
+                <div class="terminal" id="logBox">
+                    [System] Secure connection established. Waiting for wallet.
+                </div>
+            </div>
+
+            <!-- Pool & Auto Transfer -->
+            <div class="card">
+                <div style="font-size: 14px; font-weight: bold; color: #38bdf8; margin-bottom: 8px;" id="t-poolTitle">Pool & Auto Transfer ($0.50 Target)</div>
+                <div class="stat-row"><span class="stat-label" id="t-usdLabel">USD Value:</span> <span class="stat-val" id="usdVal" style="color:#facc15">$0.00 / $0.50</span></div>
+                <div style="background: #0f172a; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 10px; margin-bottom: 12px;">
+                    <div id="progressBar" style="width: 0%; height: 100%; background: #22c55e; transition: 0.3s;"></div>
+                </div>
+                <button class="btn-secondary" style="background: #334155; cursor: default;" id="claimBtn" disabled>Waiting for $0.50 Threshold</button>
+            </div>
+
+            <!-- Portal Switch Button -->
+            <button class="btn-secondary" onclick="switchView('portal')" id="t-portalBtn">🌐 Zyler Official Site & Portal</button>
+        </div>
+
+
+        <!-- ================= 2. SECTION: OFFICIAL PORTAL & PROJECT INFO ================= -->
+        <div id="portalSection" class="section-view">
+            <div class="card">
+                <h1 id="t-portalTitle">Zyler Network Vision</h1>
+                <p style="font-size: 13px; color: #94a3b8; text-align: center; line-height: 1.5;" id="t-portalDesc">
+                    Zyler (ZLR) is a decentralized PoW network optimized for CPU & ARM, turning everyday hardware into massive mining pools with a strict 21 Million supply cap.
+                </p>
+
+                <div class="quote-box" id="t-quote">
+                    "Mining is no longer just a monopoly for massive ASIC devices or the wealthy; it's everyone's right on their phone or home computer."
+                </div>
+
+                <div style="font-size: 14px; font-weight: bold; color: #38bdf8; margin: 15px 0 8px 0;" id="t-tokenDistTitle">📊 Supply & Token Allocation</div>
+                <div class="info-row"><span style="color:#94a3b8" id="t-maxSupplyLabel">Total Max Supply:</span> <span style="font-weight:600">21,000,000 ZLR</span></div>
+                <div class="info-row"><span style="color:#94a3b8" id="t-rewardPoolLabel">Mining Reward Pool:</span> <span style="font-weight:600; color:#22c55e">95% (Community Mining)</span></div>
+                <div class="info-row"><span style="color:#94a3b8" id="t-teamLabel">Team Share:</span> <span style="font-weight:600">2.5%</span></div>
+                <div class="info-row"><span style="color:#94a3b8" id="t-reserveLabel">Reserve / Ecosystem:</span> <span style="font-weight:600">2.5%</span></div>
+
+                <a href="#" class="btn-primary" style="margin-top: 15px; margin-bottom: 10px;" onclick="alert('APK download link is being prepared!')" id="t-apkBtn">Download Zyler APK</a>
+                <button class="btn-secondary" onclick="switchView('miner')" id="t-backMinerBtn">⛏️ Back to Cloud Miner</button>
+            </div>
+        </div>
+
+        <div class="footer" id="t-footer">
+            Security & Encryption: Advanced anti-bot & token protection active. © 2026 Zyler
+        </div>
+    </div>
+
+    <script>
+        let currentLang = 'en';
+        let miningInterval = null;
+        let minedAmount = 0.0000;
+        let poolAmount = 0.0000;
+        let currentHashRate = 24.41;
+
+        // Top 20 Most Populous Countries Languages Dictionary
+        const dict = {
+            en: {
+                logo: "Zyler Cloud Miner", network: "Network: BNB Smart Chain (BSC)", walletLabel: "Your BSC Wallet Address (BEP20):", walletPlaceholder: "Paste your 0x... address here", startBtn: "Start Mining", devicePower: "Device Power:", powerModeLabel: "Mining Power Mode:", secureActive: "SECURE MINING ACTIVE", hashRateLabel: "Current Hashrate:", minedLabel: "Live Mined:", poolLabel: "Pool Balance:", stopBtn: "Stop Mining", resetBtn: "Change Wallet / Logout", poolTitle: "Pool & Auto Transfer ($0.50 Target)", usdLabel: "USD Value:", waitingClaim: "Waiting for $0.50 Threshold", readyClaim: "Transfer to Wallet ($0.50 Ready!)", portalBtn: "🌐 Zyler Official Site & Portal", portalTitle: "Zyler Network Vision", portalDesc: "Zyler (ZLR) is a decentralized PoW network optimized for CPU & ARM, turning everyday hardware into massive mining pools with a strict 21 Million supply cap.", quote: "\"Mining is no longer just a monopoly for massive ASIC devices or the wealthy; it's everyone's right on their phone or home computer.\"", tokenDistTitle: "📊 Supply & Token Allocation", maxSupplyLabel: "Total Max Supply:", rewardPoolLabel: "Mining Reward Pool:", teamLabel: "Team Share:", reserveLabel: "Reserve / Ecosystem:", apkBtn: "Download Zyler APK", backMinerBtn: "⛏️ Back to Cloud Miner", footer: "Security & Encryption: Advanced anti-bot & token protection active. © 2026 Zyler"
+            },
+            tr: {
+                logo: "Zyler Cloud Miner", network: "Ağ: BNB Smart Chain (BSC)", walletLabel: "BSC Cüzdan Adresiniz (BEP20):", walletPlaceholder: "0x... adresinizi buraya yapıştırın", startBtn: "Madenciliğe Başla", devicePower: "Cihaz Gücü:", powerModeLabel: "Kazım Gücü Seçimi:", secureActive: "GÜVENLİ KAZIM AKTİF", hashRateLabel: "Anlık Kazım Hızı:", minedLabel: "Canlı Kazılan:", poolLabel: "Havuzda Biriken:", stopBtn: "Durdur (Stop)", resetBtn: "Cüzdanı Değiştir / Çıkış Yap", poolTitle: "Havuz & Otomatik Aktarım ($0.50 Hedef)", usdLabel: "USD Değeri:", waitingClaim: "$0.50 Eşiği Bekleniyor", readyClaim: "Cüzdana Aktar ($0.50 Hazır!)", portalBtn: "🌐 Zyler Resmi Sitesi & Portal", portalTitle: "Zyler Network Vizyonu", portalDesc: "Zyler (ZLR), sıradan donanımları devasa madencilik havuzlarına dönüştüren; CPU ve ARM optimizasyonlu, toplam 21 Milyon arzıyla sınırlı merkeziyetsiz PoW ağıdır.", quote: "\"Madencilik artık sadece devasa ASIC cihazlarının veya zenginlerin monopolünde değil; cebindeki telefonda, evindeki bilgisayarda herkesin hakkı.\"", tokenDistTitle: "📊 Arz ve Token Dağılımı", maxSupplyLabel: "Toplam Maksimum Arz:", rewardPoolLabel: "Madencilik Ödül Havuzu:", teamLabel: "Takım Payı:", reserveLabel: "Rezerv / Ekosistem:", apkBtn: "Zyler APK İndir", backMinerBtn: "⛏️ Cloud Miner Paneline Dön", footer: "Güvenlik & Şifreleme: Gelişmiş anti-bot ve token koruması aktif. © 2026 Zyler"
+            },
+            zh: {
+                logo: "Zyler 云端挖矿", network: "网络: BNB Smart Chain (BSC)", walletLabel: "您的 BSC 钱包地址 (BEP20):", walletPlaceholder: "在此粘贴您的 0x... 地址", startBtn: "开始挖矿", devicePower: "设备算力:", powerModeLabel: "挖矿模式选择:", secureActive: "安全挖矿已激活", hashRateLabel: "当前算力:", minedLabel: "实时已挖:", poolLabel: "矿池余额:", stopBtn: "停止挖矿", resetBtn: "更改钱包 / 登出", poolTitle: "矿池与自动转账 (目标 $0.50)", usdLabel: "USD 价值:", waitingClaim: "等待达到 $0.50 门槛", readyClaim: "转入钱包 ($0.50 就绪!)", portalBtn: "🌐 Zyler 官方网站与门户", portalTitle: "Zyler 网络愿景", portalDesc: "Zyler (ZLR) 是一个针对 CPU 和 ARM 优化的去中心化 PoW 网络，总量限量 2100 万。", quote: "\"挖矿不再只是巨型矿机或富人的专利，手机和电脑让每个人都能参与。\"", tokenDistTitle: "📊 代币分配方案", maxSupplyLabel: "最大总供应量:", rewardPoolLabel: "挖矿奖励池:", teamLabel: "团队份额:", reserveLabel: "储备 / 生态:", apkBtn: "下载 Zyler APK", backMinerBtn: "⛏️ 返回云端矿机面板", footer: "安全与加密: 高级防机器人和代币保护已激活。© 2026 Zyler"
+            },
+            hi: {
+                logo: "Zyler क्लाउड माइनर", network: "नेटवर्क: BNB Smart Chain (BSC)", walletLabel: "आपका BSC वॉलेट पता (BEP20):", walletPlaceholder: "अपना 0x... पता यहाँ पेस्ट करें", startBtn: "माइनिंग शुरू करें", devicePower: "डिवाइस पावर:", powerModeLabel: "माइनिंग पावर मोड:", secureActive: "सुरक्षित माइनिंग सक्रिय", hashRateLabel: "वर्तमान हैशरेट:", minedLabel: "लाइव माइंड:", poolLabel: "पूल बैलेंस:", stopBtn: "रोकें (Stop)", resetBtn: "वॉलेट बदलें / लॉग आउट", poolTitle: "पूल और ऑटो ट्रांसफर ($0.50 लक्ष्य)", usdLabel: "USD मूल्य:", waitingClaim: "$0.50 सीमा की प्रतीक्षा है", readyClaim: "वॉलेट में ट्रांसफर करें ($0.50 तैयार!)", portalBtn: "🌐 Zyler आधिकारिक साइट और पोर्टल", portalTitle: "Zyler नेटवर्क विजन", portalDesc: "Zyler (ZLR) एक विकेन्द्रीकृत PoW नेटवर्क है जो CPU और ARM के लिए अनुकूलित है, जिसमें 21 मिलियन की कुल आपूर्ति है।", quote: "\"माइनिंग अब केवल अमीरों या ए ASIC मशीनों के लिए नहीं है; यह हर किसी का अधिकार है।\"", tokenDistTitle: "📊 टोकन वितरण", maxSupplyLabel: "कुल अधिकतम आपूर्ति:", rewardPoolLabel: "माइनिंग पुरस्कार पूल:", teamLabel: "टीम शेयर:", reserveLabel: "आरक्षित / पारिस्थितिकी तंत्र:", apkBtn: "Zyler APK डाउनलोड करें", backMinerBtn: "⛏️ क्लाउड माइनर पैनल पर लौटें", footer: "सुरक्षा और एन्क्रिप्शन: उन्नत सुरक्षा सक्रिय। © 2026 Zyler"
+            },
+            es: {
+                logo: "Zyler Cloud Miner", network: "Red: BNB Smart Chain (BSC)", walletLabel: "Tu Dirección de Billetera BSC (BEP20):", walletPlaceholder: "Pega tu dirección 0x... aquí", startBtn: "Iniciar Minería", devicePower: "Potencia del Dispositivo:", powerModeLabel: "Modo de Potencia:", secureActive: "MINERÍA SEGURA ACTIVA", hashRateLabel: "Tasa de Hash Actual:", minedLabel: "Minado en Vivo:", poolLabel: "Balance del Pool:", stopBtn: "Detener (Stop)", resetBtn: "Cambiar Billetera / Salir", poolTitle: "Pool y Transferencia Automática (Meta $0.50)", usdLabel: "Valor USD:", waitingClaim: "Esperando umbral de $0.50", readyClaim: "Transferir a Billetera (¡$0.50 Listo!)", portalBtn: "🌐 Sitio Oficial y Portal de Zyler", portalTitle: "Visión de Zyler Network", portalDesc: "Zyler (ZLR) es una red PoW descentralizada optimizada para CPU y ARM, con un límite estricto de 21 millones de suministro.", quote: "\"La minería ya no es un monopolio; es el derecho de todos en su teléfono o computadora.\"", tokenDistTitle: "📊 Asignación de Tokens", maxSupplyLabel: "Suministro Máximo Total:", rewardPoolLabel: "Pool de Recompensas:", teamLabel: "Parte del Equipo:", reserveLabel: "Reserva / Ecosistema:", apkBtn: "Descargar APK de Zyler", backMinerBtn: "⛏️ Volver al Panel de Minería", footer: "Seguridad y Cifrado: Protección anti-bot activa. © 2026 Zyler"
+            },
+            bn: {
+                logo: "Zyler ক্লাউড মাইনার", network: "নেটওয়ার্ক: BNB Smart Chain (BSC)", walletLabel: "আপনার BSC ওয়ালেট ঠিকানা (BEP20):", walletPlaceholder: "এখানে আপনার 0x... ঠিকানা পেস্ট করুন", startBtn: "মাইনিং শুরু করুন", devicePower: "ডিভাইস শক্তি:", powerModeLabel: "মাইনিং মোড নির্বাচন:", secureActive: "সুরক্ষিত মাইনিং সক্রিয়", hashRateLabel: "বর্তমান হ্যাশরেট:", minedLabel: "লাইভ মাইনড:", poolLabel: "পুল ব্যালেন্স:", stopBtn: "থামুন (Stop)", resetBtn: "ওয়ালেট পরিবর্তন করুন", poolTitle: "পুল এবং অটো ট্রান্সফার ($0.50 লক্ষ্য)", usdLabel: "USD মূল্য:", waitingClaim: "$0.50 থ্রেশহোল্ডের জন্য অপেক্ষা করা হচ্ছে", readyClaim: "ওয়ালেটে স্থানান্তর করুন ($0.50 প্রস্তুত!)", portalBtn: "🌐 Zyler অফিশিয়াল সাইট এবং পোর্টাল", portalTitle: "Zyler নেটওয়ার্ক ভিশন", portalDesc: "Zyler (ZLR) হল একটি বিকেন্দ্রীকৃত PoW নেটওয়ার্ক যা CPU এবং ARM এর জন্য অপ্টিমাইজ করা হয়েছে।", quote: "\"মাইনিং এখন আর কেবল ধনী বা বড় ডিভাইসের জন্য নয়; এটি সবার অধিকার।\"", tokenDistTitle: "📊 টোকেন বন্টন", maxSupplyLabel: "সর্বমোট সর্বোচ্চ সরবরাহ:", rewardPoolLabel: "মাইনিং পুরস্কার পুল:", teamLabel: "টিম শেয়ার:", reserveLabel: "রিজার্ভ / ইকোসিস্টেম:", apkBtn: "Zyler APK ডাউনলোড করুন", backMinerBtn: "⛏️ ক্লাউড মাইনার প্যানেলে ফিরে যান", footer: "নিরাপত্তা এবং এনক্রিপশন সক্রিয়। © 2026 Zyler"
+            },
+            pt: {
+                logo: "Zyler Cloud Miner", network: "Rede: BNB Smart Chain (BSC)", walletLabel: "Seu Endereço de Carteira BSC (BEP20):", walletPlaceholder: "Cole seu endereço 0x... aqui", startBtn: "Iniciar Mineração", devicePower: "Potência do Dispositivo:", powerModeLabel: "Modo de Potência:", secureActive: "MINERAÇÃO SEGURA ATIVA", hashRateLabel: "Taxa de Hash Atual:", minedLabel: "Minerado ao Vivo:", poolLabel: "Saldo do Pool:", stopBtn: "Parar (Stop)", resetBtn: "Trocar Carteira / Sair", poolTitle: "Pool e Transferência Automática (Meta $0.50)", usdLabel: "Valor USD:", waitingClaim: "Aguardando limite de $0.50", readyClaim: "Transferir para Carteira ($0.50 Pronto!)", portalBtn: "🌐 Site Oficial e Portal Zyler", portalTitle: "Visão da Zyler Network", portalDesc: "Zyler (ZLR) é uma rede PoW descentralizada otimizada para CPU e ARM, com um limite estrito de 21 milhões de suprimento.", quote: "\"A mineração não é mais um monopólio; é direito de todos no celular ou PC.\"", tokenDistTitle: "📊 Distribuição de Tokens", maxSupplyLabel: "Suprimento Máximo Total:", rewardPoolLabel: "Pool de Recompensas:", teamLabel: "Participação da Equipe:", reserveLabel: "Reserva / Ecossistema:", apkBtn: "Baixar APK do Zyler", backMinerBtn: "⛏️ Voltar ao Painel", footer: "Segurança e Criptografia ativas. © 2026 Zyler"
+            },
+            ru: {
+                logo: "Zyler Cloud Miner", network: "Сеть: BNB Smart Chain (BSC)", walletLabel: "Ваш адрес BSC кошелька (BEP20):", walletPlaceholder: "Вставьте адрес 0x... сюда", startBtn: "Начать майнинг", devicePower: "Мощность устройства:", powerModeLabel: "Режим мощности:", secureActive: "БЕЗОПАСНЫЙ МАЙНИНГ АКТИВЕН", hashRateLabel: "Текущий хэшрейт:", minedLabel: "Добыто в реальном времени:", poolLabel: "Баланс пула:", stopBtn: "Остановить (Stop)", resetBtn: "Сменить кошелек / Выход", poolTitle: "Пул и автоперевод (Цель $0.50)", usdLabel: "Стоимость USD:", waitingClaim: "Ожидание порога $0.50", readyClaim: "Перевести ($0.50 Готово!)", portalBtn: "🌐 Официальный сайт и портал Zyler", portalTitle: "Видение Zyler Network", portalDesc: "Zyler (ZLR) — децентрализованная сеть PoW, оптимизированная для CPU и ARM, с общим запасом 21 млн токенов.", quote: "\"Майнинг — это право каждого на его телефоне или компьютере.\"", tokenDistTitle: "📊 Распределение токенов", maxSupplyLabel: "Максимальный запас:", rewardPoolLabel: "Пул наград за майнинг:", teamLabel: "Доля команды:", reserveLabel: "Резерв / Экосистема:", apkBtn: "Скачать Zyler APK", backMinerBtn: "⛏️ Вернуться в панель", footer: "Безопасность и шифрование активны. © 2026 Zyler"
+            },
+            ja: {
+                logo: "Zyler クラウドマイナー", network: "ネットワーク: BNB Smart Chain (BSC)", walletLabel: "BSCウォレットアドレス (BEP20):", walletPlaceholder: "0x... アドレスをここに貼り付け", startBtn: "マイニング開始", devicePower: "デバイスパワー:", powerModeLabel: "マイニングパワー選択:", secureActive: "セキュアマイニング有効", hashRateLabel: "現在のハッシュレート:", minedLabel: "リアルタイム採掘量:", poolLabel: "プール残高:", stopBtn: "停止 (Stop)", resetBtn: "ウォレット変更 / ログアウト", poolTitle: "プール＆自動送金 (目標 $0.50)", usdLabel: "USD 価値:", waitingClaim: "$0.50 の閾値を待っています", readyClaim: "ウォレットに送金 ($0.50 準備完了!)", portalBtn: "🌐 Zyler 公式サイト＆ポータル", portalTitle: "Zyler ネットワークビジョン", portalDesc: "Zyler (ZLR) は、CPU および ARM に最適化された、総供給量2100万枚の分散型PoWネットワークです。", quote: "\"マイニングはもはや一部の特権ではなく、スマホやPCを持つすべての人に開かれています。\"", tokenDistTitle: "📊 トークン配分", maxSupplyLabel: "最大総供給量:", rewardPoolLabel: "マイニング報酬プール:", teamLabel: "チーム保有:", reserveLabel: "リザーブ / エコシステム:", apkBtn: "Zyler APKをダウンロード", backMinerBtn: "⛏️ マイナーパネルに戻る", footer: "セキュリティと暗号化が有効です。© 2026 Zyler"
+            },
+            pa: {
+                logo: "Zyler ਕਲਾउड ਮైనਰ", network: "ਨੈੱਟਵਰਕ: BNB Smart Chain (BSC)", walletLabel: "ਤੁਹਾਡਾ BSC ਵாலਿਟ ਪਤਾ (BEP20):", walletPlaceholder: "ਆਪਣਾ 0x... ਪਤਾ ਇੱਥੇ ਪੇਸਟ ਕਰੋ", startBtn: "ਮਾਈਨਿੰਗ ਸ਼ੁਰੂ ਕਰੋ", devicePower: "ਡਿਵਾਈਸ ਪਾਵਰ:", powerModeLabel: "ਮਾਈਨਿੰਗ ਪਾਵਰ ਮੋਡ:", secureActive: "ਸੁਰੱਖਿਅਤ ਮਾਈਨਿੰਗ ਕਿਰਿਆਸ਼ੀਲ", hashRateLabel: "ਮੌਜੂਦਾ ਹੈਸ਼ਰੇਟ:", minedLabel: "ਲਾਈਵ ਮਾਈਨਡ:", poolLabel: "ਪੂਲ ਬੈਲੰਸ:", stopBtn: "ਰੋਕੋ (Stop)", resetBtn: "ਵਾਲਿਟ ਬਦਲੋ / ਲੌਗ ਆਉਟ", poolTitle: "ਪੂਲ ਅਤੇ ਆਟੋ ਟ੍ਰਾਂਸਫਰ ($0.50 ਟੀਚਾ)", usdLabel: "USD ਮੁੱਲ:", waitingClaim: "$0.50 ਸੀਮਾ ਦੀ ਉਡੀਕ ਹੈ", readyClaim: "ਵਾਲਿਟ ਵਿੱਚ ਟ੍ਰਾਂਸਫਰ ਕਰੋ ($0.50 ਤਿਆਰ!)", portalBtn: "🌐 Zyler ਅਧਿਕਾਰਤ ਸਾਈਟ ਅਤੇ ਪੋਰਟਲ", portalTitle: "Zyler ਨੈੱਟਵਰਕ ਵਿਜ਼ਨ", portalDesc: "Zyler (ZLR) ਇੱਕ ਵਿਕੇਂਦਰੀਕ੍ਰਿਤ PoW ਨੈੱਟਵਰਕ ਹੈ ਜੋ CPU ਅਤੇ ARM ਲਈ ਅਨुकੂਲਿਤ ਹੈ।", quote: "\"ਮਾਈਨਿੰਗ ਹੁਣ ਸਿਰਫ਼ ਅਮੀਰਾਂ ਲਈ ਨਹੀਂ ਹੈ; ਇਹ ਹਰ ਕਿਸੇ ਦਾ ਅਧਿਕਾਰ ਹੈ।\"", tokenDistTitle: "📊 ਟੋਕਨ ਵੰਡ", maxSupplyLabel: "ਕੁੱਲ ਵੱਧ ਤੋਂ ਵੱਧ ਸਪਲਾਈ:", rewardPoolLabel: "ਮਾਈਨਿੰਗ ਇਨਾਮ ਪੂਲ:", teamLabel: "ਟੀਮ ਹਿੱਸਾ:", reserveLabel: "ਰਿਜ਼ਰਵ / ਈਕੋਸਿਸਟਮ:", apkBtn: "Zyler APK ਡਾਊਨਲੋਡ ਕਰੋ", backMinerBtn: "⛏️ ਮਾਈਨਰ ਪੈਨਲ 'ਤੇ ਵਾਪस ਜਾਓ", footer: "ਸੁਰੱਖਿਆ ਅਤੇ ਏਨਕ੍ਰਿਪਸ਼ਨ ਕਿਰਿਆਸ਼ੀਲ। © 2026 Zyler"
+            },
+            de: {
+                logo: "Zyler Cloud Miner", network: "Netzwerk: BNB Smart Chain (BSC)", walletLabel: "Ihre BSC-Wallet-Adresse (BEP20):", walletPlaceholder: "Fügen Sie Ihre 0x... Adresse hier ein", startBtn: "Mining starten", devicePower: "Geräteleistung:", powerModeLabel: "Mining-Leistungsmodus:", secureActive: "SICHERES MINING AKTIV", hashRateLabel: "Aktuelle Hashrate:", minedLabel: "Live Gematert:", poolLabel: "Pool-Guthaben:", stopBtn: "Stoppen (Stop)", resetBtn: "Wallet wechseln / Abmelden", poolTitle: "Pool & Automatische Übertragung ($0.50 Ziel)", usdLabel: "USD-Wert:", waitingClaim: "Warten auf $0.50 Schwellenwert", readyClaim: "Auf Wallet übertragen ($0.50 bereit!)", portalBtn: "🌐 Zyler Offizielle Website & Portal", portalTitle: "Zyler Netzwerk-Vision", portalDesc: "Zyler (ZLR) ist ein dezentrales PoW-Netzwerk, optimiert für CPU & ARM, mit einem strengen Limit von 21 Millionen.", quote: "\"Mining ist kein Monopol mehr; es ist das Recht aller auf ihrem Telefon oder Computer.\"", tokenDistTitle: "📊 Token-Verteilung", maxSupplyLabel: "Gesamtversorgung:", rewardPoolLabel: "Mining-Belohnungspool:", teamLabel: "Team-Anteil:", reserveLabel: "Reserve / Ökosystem:", apkBtn: "Zyler APK herunterladen", backMinerBtn: "⛏️ Zurück zum Miner-Panel", footer: "Sicherheit & Verschlüsselung aktiv. © 2026 Zyler"
+            },
+            jv: {
+                logo: "Zyler Cloud Miner", network: "Jaringan: BNB Smart Chain (BSC)", walletLabel: "Alamat Dompet BSC Panjenengan (BEP20):", walletPlaceholder: "Tempel alamat 0x... ing kene", startBtn: "Mulai Mining", devicePower: "Kekuatan Piranti:", powerModeLabel: "Pilihan Daya Mining:", secureActive: "MINING AMAN AKTIF", hashRateLabel: "Kecepatan Hash:", minedLabel: "Asil Mining:", poolLabel: "Saldo Kolam:", stopBtn: "Mandheg (Stop)", resetBtn: "Ganti Dompet / Metu", poolTitle: "Kolam & Transfer Otomatis (Target $0.50)", usdLabel: "Nilai USD:", waitingClaim: "Ngenteni watesan $0.50", readyClaim: "Kirim menyang Dompet ($0.50 Siap!)", portalBtn: "🌐 Situs Resmi & Portal Zyler", portalTitle: "Visi Jaringan Zyler", portalDesc: "Zyler (ZLR) yaiku jaringan PoW terdesentralisasi sing dioptimalake kanggo CPU lan ARM.", quote: "\"Mining saiki dadi hak ewonan wong ing telpon utawa komputer.\"", tokenDistTitle: "📊 Alokasi Token", maxSupplyLabel: "Total Pasokan Maksimal:", rewardPoolLabel: "Kolam Hadiah Mining:", teamLabel: "Bagian Tim:", reserveLabel: "Cadangan / Ekosistem:", apkBtn: "Unduh APK Zyler", backMinerBtn: "⛏️ Bali menyang Panel", footer: "Keamanan lan Enkripsi aktif. © 2026 Zyler"
+            },
+            ko: {
+                logo: "Zyler 클라우드 마이너", network: "네트워크: BNB Smart Chain (BSC)", walletLabel: "BSC 지갑 주소 (BEP20):", walletPlaceholder: "0x... 주소를 여기에 입력하세요", startBtn: "채굴 시작", devicePower: "기기 성능:", powerModeLabel: "채굴 파워 모드:", secureActive: "보안 채굴 활성화", hashRateLabel: "실시간 해시레이트:", minedLabel: "실시간 채굴량:", poolLabel: "풀 잔액:", stopBtn: "중지 (Stop)", resetBtn: "지갑 변경 / 로그아웃", poolTitle: "풀 및 자동 전송 (목표 $0.50)", usdLabel: "USD 가치:", waitingClaim: "$0.50 임계값 대기 중", readyClaim: "지갑으로 전송 ($0.50 준비됨!)", portalBtn: "🌐 Zyler 공식 사이트 및 포털", portalTitle: "Zyler 네트워크 비전", portalDesc: "Zyler (ZLR)는 CPU 및 ARM에 최적화된 총 공급량 2,100만 개의 탈중앙화 PoW 네트워크입니다.", quote: "\"채굴은 더 이상 대형 장비만의 전유물이 아닙니다. 누구나 스마트폰으로 참여할 수 있습니다.\"", tokenDistTitle: "📊 토큰 분배", maxSupplyLabel: "최대 총 공급량:", rewardPoolLabel: "채굴 보상 풀:", teamLabel: "팀 물량:", reserveLabel: "예비비 / 생태계:", apkBtn: "Zyler APK 다운로드", backMinerBtn: "⛏️ 채굴 패널로 돌아가기", footer: "보안 및 암호화 활성화됨. © 2026 Zyler"
+            },
+            fr: {
+                logo: "Zyler Cloud Miner", network: "Réseau: BNB Smart Chain (BSC)", walletLabel: "Votre Adresse de Portefeuille BSC (BEP20):", walletPlaceholder: "Collez votre adresse 0x... ici", startBtn: "Démarrer le Minage", devicePower: "Puissance de l'Appareil:", powerModeLabel: "Mode de Puissance:", secureActive: "MINAGE SÉCURISÉ ACTIF", hashRateLabel: "Taux de Hachage:", minedLabel: "Miné en Direct:", poolLabel: "Solde du Pool:", stopBtn: "Arrêter (Stop)", resetBtn: "Changer de Portefeuille / Déconnexion", poolTitle: "Pool et Transfert Auto (Cible $0.50)", usdLabel: "Valeur USD:", waitingClaim: "En attente du seuil de $0.50", readyClaim: "Transférer au Portefeuille ($0.50 Prêt!)", portalBtn: "🌐 Site Officiel et Portail Zyler", portalTitle: "Vision de Zyler Network", portalDesc: "Zyler (ZLR) est un réseau PoW décentralisé optimisé pour les CPU et ARM, avec un plafond de 21 millions.", quote: "\"Le minage n'est plus un monopole; c'est le droit de chacun sur son téléphone.\"", tokenDistTitle: "📊 Allocation des Jetons", maxSupplyLabel: "Approvisionnement Maximal:", rewardPoolLabel: "Pool de Récompenses:", teamLabel: "Part de l'Équipe:", reserveLabel: "Réserve / Écosystème:", apkBtn: "Télécharger l'APK Zyler", backMinerBtn: "⛏️ Retour au Panneau", footer: "Sécurité et Chiffrement actifs. © 2026 Zyler"
+            },
+            vi: {
+                logo: "Zyler Cloud Miner", network: "Mạng: BNB Smart Chain (BSC)", walletLabel: "Địa chỉ Ví BSC của bạn (BEP20):", walletPlaceholder: "Dán địa chỉ 0x... của bạn vào đây", startBtn: "Bắt đầu Khai thác", devicePower: "Hiệu năng Thiết bị:", powerModeLabel: "Chế độ Khai thác:", secureActive: "KHAI THÁC BẢO MẬT HOẠT ĐỘNG", hashRateLabel: "Tốc độ Đào:", minedLabel: "Đã Đào Trực Tiếp:", poolLabel: "Số dư Nhóm:", stopBtn: "Dừng lại (Stop)", resetBtn: "Đổi Ví / Đăng xuất", poolTitle: "Nhóm & Tự động Chuyển (Mục tiêu $0.50)", usdLabel: "Giá trị USD:", waitingClaim: "Đang chờ ngưỡng $0.50", readyClaim: "Chuyển vào Ví ($0.50 Đã sẵn sàng!)", portalBtn: "🌐 Trang chủ & Cổng thông tin Zyler", portalTitle: "Tầm nhìn Zyler Network", portalDesc: "Zyler (ZLR) là mạng PoW phi tập trung tối ưu hóa cho CPU & ARM, giới hạn ở mức 21 triệu token.", quote: "\"Khai thác không còn là độc quyền; đó là quyền của mọi người trên điện thoại.\"", tokenDistTitle: "📊 Phân bổ Token", maxSupplyLabel: "Tổng Cung Tối Đa:", rewardPoolLabel: "Nhóm Thưởng Khai Thác:", teamLabel: "Phần Đội Ngũ:", reserveLabel: "Dự trữ / Hệ sinh thái:", apkBtn: "Tải xuống Zyler APK", backMinerBtn: "⛏️ Quay lại Bảng điều khiển", footer: "Bảo mật & Mã hóa hoạt động. © 2026 Zyler"
+            },
+            te: {
+                logo: "Zyler క్లౌడ్ మైనర్", network: "నెట్‌వర్క్: BNB Smart Chain (BSC)", walletLabel: "మీ BSC వాలెట్ చిరునామా (BEP20):", walletPlaceholder: "మీ 0x... చిరునామాను ఇక్కడ అతికించండి", startBtn: "మైనింగ్ ప్రారంభించండి", devicePower: "పరికర శక్తి:", powerModeLabel: "మైనింగ్ పవర్ మోడ్:", secureActive: "సురక్షిత మైనింగ్ సక్రియంగా ఉంది", hashRateLabel: "ప్రస్తుత హ్యాశ్‌రేట్:", minedLabel: "లైవ్ మైన్డ్:", poolLabel: "పూల్ బ్యాలెన్స్:", stopBtn: "ఆపు (Stop)", resetBtn: "వాలెట్ మార్చండి / లాగ్ అవుట్", poolTitle: "పూల్ & ఆటో ట్రాన్స్‌ఫర్ ($0.50 లక్ష్యం)", usdLabel: "USD విలువ:", waitingClaim: "$0.50 పరిమితి కోసం వేచి ఉంది", readyClaim: "వాలెట్‌కి బదిలీ చేయండి ($0.50 సిద్ధంగా ఉంది!)", portalBtn: "🌐 Zyler అధికారిక సైట్ & పోర్టల్", portalTitle: "Zyler నెట్‌వర్క్ విజన్", portalDesc: "Zyler (ZLR) అనేది CPU & ARM కోసం ఆప్టిమైజ్ చేయబడిన వికేంద్రీకృత PoW నెట్‌వర్క్.", quote: "\"మైనింగ్ ఇకపై గుత్తాపధిపత్యం కాదు; ఫోన్‌లో ప్రతి ఒక్కరి హక్కు.\"", tokenDistTitle: "📊 టోకెన్ కేటాయింపు", maxSupplyLabel: "గరిష్ట సరఫరా:", rewardPoolLabel: "మైనింగ్ రివార్డ్ పూల్:", teamLabel: "టీమ్ వాటా:", reserveLabel: "రిజర్వ్ / ఎకోసిస్టమ్:", apkBtn: "Zyler APK డౌన్‌లోడ్ చేయండి", backMinerBtn: "⛏️ మైనర్ ప్యానెల్‌కి తిరిగి వెళ్ళు", footer: "భద్రత & గుప్తీకరణ సక్రియంగా ఉంది. © 2026 Zyler"
+            },
+            mr: {
+                logo: "Zyler क्लाउड मायनर", network: "नेटवर्क: BNB Smart Chain (BSC)", walletLabel: "तुमचा BSC वॉलेट पत्ता (BEP20):", walletPlaceholder: "तुमचा 0x... पत्ता येथे टाका", startBtn: "मायनिंग सुरू करा", devicePower: "डیو्हाइस पॉवर:", powerModeLabel: "मायनिंग पॉवर मोड:", secureActive: "सुरक्षित मायनिंग सक्रिय", hashRateLabel: "सध्याचा हॅशरेट:", minedLabel: "लाइव्ह माईंड:", poolLabel: "पूल बॅलन्स:", stopBtn: "थांबवा (Stop)", resetBtn: "वॉलेट बदला / लॉग आउट", poolTitle: "पूल आणि ऑटो ट्रान्सफर ($0.50 लक्ष)", usdLabel: "USD मूल्य:", waitingClaim: "$0.50 मर्यादेची प्रतीक्षा आहे", readyClaim: "वॉलेटमध्ये ट्रान्सफर करा ($0.50 तयार!)", portalBtn: "🌐 Zyler अधिकृत साइट आणि पोर्टल", portalTitle: "Zyler नेटवर्क दृष्टी", portalDesc: "Zyler (ZLR) हे एक विकेंद्रित PoW नेटवर्क आहे जे CPU आणि ARM साठी ऑप्टिमाइझ केलेले आहे.", quote: "\"मायनिंग आता फक्त श्रीमंतांचे नाही; मोबाईलवर प्रत्येकाचा हक्क आहे.\"", tokenDistTitle: "📊 टोकन वाटप", maxSupplyLabel: "एकूण कमाल पुरवठा:", rewardPoolLabel: "मायनिंग बक्षीस पूल:", teamLabel: "टीम हिस्सा:", reserveLabel: "राखीव / इकोसिस्टम:", apkBtn: "Zyler APK डाउनलोड करा", backMinerBtn: "⛏️ मायनर पॅनेलवर परत जा", footer: "सुरक्षा आणि एन्क्रिप्शन सक्रिय. © 2026 Zyler"
+            },
+            ur: {
+                logo: "Zyler ক্লাউড মাইনার", network: "نیٹ ورک: BNB Smart Chain (BSC)", walletLabel: "آپ کا BSC والٹ ایڈریس (BEP20):", walletPlaceholder: "اپنا 0x... ایڈریس یہاں پیسٹ کریں", startBtn: "مائننگ شروع کریں", devicePower: "ڈوائیس پاور:", powerModeLabel: "مائننگ پاور موڈ:", secureActive: "محفوظ مائننگ فعال", hashRateLabel: "موجودہ ہیش ریٹ:", minedLabel: "لائیو مائنڈ:", poolLabel: "پول بیلنس:", stopBtn: "روکیں (Stop)", resetBtn: "والٹ تبدیل کریں / لاگ آؤٹ", poolTitle: "پول اور آٹو ٹرانسفر ($0.50 ہدف)", usdLabel: "USD ویلیو:", waitingClaim: "$0.50 حد کا انتظار ہے", readyClaim: "والٹ میں منتقل کریں ($0.50 تیار!)", portalBtn: "🌐 Zyler آفیشل سائٹ اور پورٹل", portalTitle: "Zyler نیٹ ورک وژن", portalDesc: "Zyler (ZLR) ایک غیر مرکزی PoW نیٹ ورک ہے جو CPU اور ARM کے لیے موزوں ہے۔", quote: "\"مائننگ اب صرف چند لوگوں کا حق نہیں ہے؛ یہ ہر ایک کا حق ہے۔\"", tokenDistTitle: "📊 ٹوکن کی تقسیم", maxSupplyLabel: "کل زیادہ سے زیادہ سپلائی:", rewardPoolLabel: "مائننگ ریوارڈ پول:", teamLabel: "ٹیم کا حصہ:", reserveLabel: "ریزرو / ایکو سسٹم:", apkBtn: "Zyler APK ڈاؤن لوڈ کریں", backMinerBtn: "⛏️ مائنر پینل پر واپس جائیں", footer: "سیکیورٹی اور انکرپشن فعال۔ © 2026 Zyler"
+            },
+            it: {
+                logo: "Zyler Cloud Miner", network: "Rete: BNB Smart Chain (BSC)", walletLabel: "Il tuo indirizzo wallet BSC (BEP20):", walletPlaceholder: "Incolla il tuo indirizzo 0x... qui", startBtn: "Avvia il Mining", devicePower: "Potenza del Dispositivo:", powerModeLabel: "Modalità di Potenza:", secureActive: "MINING SICURO ATTIVO", hashRateLabel: "Hashrate Attuale:", minedLabel: "Minato in Diretta:", poolLabel: "Saldo del Pool:", stopBtn: "Ferma (Stop)", resetBtn: "Cambia Wallet / Logout", poolTitle: "Pool e Trasferimento Automatico (Obiettivo $0.50)", usdLabel: "Valore USD:", waitingClaim: "In attesa della soglia di $0.50", readyClaim: "Trasferisci al Wallet ($0.50 Pronto!)", portalBtn: "🌐 Sito Ufficiale e Portale Zyler", portalTitle: "Visione di Zyler Network", portalDesc: "Zyler (ZLR) è una rete PoW decentralizzata ottimizzata per CPU e ARM, con un limite rigoroso di 21 milioni.", quote: "\"Il mining non è più un monopolio; è il diritto di tutti sul proprio telefono o PC.\"", tokenDistTitle: "📊 Allocazione dei Token", maxSupplyLabel: "Fornitura Massima Totale:", rewardPoolLabel: "Pool di Ricompensa:", teamLabel: "Quota del Team:", reserveLabel: "Riserva / Ecosistema:", apkBtn: "Scarica l'APK di Zyler", backMinerBtn: "⛏️ Torna al Pannello", footer: "Sicurezza e crittografia attive. © 2026 Zyler"
+            },
+            fa: {
+                logo: "Zyler Cloud Miner", network: "شبکه: BNB Smart Chain (BSC)", walletLabel: "آدرس کیف پول BSC شما (BEP20):", walletPlaceholder: "آدرس 0x... خود را اینجا وارد کنید", startBtn: "شروع استخراج", devicePower: "قدرت دستگاه:", powerModeLabel: "حالت قدرت استخراج:", secureActive: "استخراج امن فعال است", hashRateLabel: "نرخ هش فعلی:", minedLabel: "استخراج شده زنده:", poolLabel: "موجودی استخر:", stopBtn: "توقف (Stop)", resetBtn: "تغییر کیف پول / خروج", poolTitle: "استخر و انتقال خودکار (هدف $0.50)", usdLabel: "ارزش USD:", waitingClaim: "در انتظار آستانه $0.50", readyClaim: "انتقال به کیف پول ($0.50 آماده!)", portalBtn: "🌐 سایت رسمی و پورتال Zyler", portalTitle: "چشم‌انداز شبکه Zyler", portalDesc: "Zyler (ZLR) یک شبکه PoW غیرمتمرکز بهینه‌سازی شده برای CPU و ARM با سقف عرضه ۲۱ میلیون است.", quote: "\"استخراج دیگر انحصار ثروتمندان نیست؛ حق همه روی تلفن همراه است.\"", tokenDistTitle: "📊 توزیع توکن", maxSupplyLabel: "حداکثر کل عرضه:", rewardPoolLabel: "استخر پاداش استخراج:", teamLabel: "سهم تیم:", reserveLabel: "ذخیره / اکوسیستم:", apkBtn: "دانلود Zyler APK", backMinerBtn: "⛏️ بازگشت به پنل ماینر", footer: "امنیت و رمزگذاری فعال است. © 2026 Zyler"
+            }
+        };
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            const t = dict[lang] || dict['en'];
+            document.getElementById('t-logo').innerText = t.logo;
+            document.getElementById('t-network').innerText = t.network;
+            document.getElementById('t-walletLabel').innerText = t.walletLabel;
+            document.getElementById('walletInput').placeholder = t.walletPlaceholder;
+            document.getElementById('t-startBtn').innerText = t.startBtn;
+            document.getElementById('t-devicePower').innerText = t.devicePower;
+            document.getElementById('t-powerModeLabel').innerText = t.powerModeLabel;
+            document.getElementById('t-secureActive').innerText = t.secureActive;
+            document.getElementById('t-hashRateLabel').innerText = t.hashRateLabel;
+            document.getElementById('t-minedLabel').innerText = t.minedLabel;
+            document.getElementById('t-poolLabel').innerText = t.poolLabel;
+            document.getElementById('t-stopBtn').innerText = t.stopBtn;
+            document.getElementById('t-resetBtn').innerText = t.resetBtn;
+            document.getElementById('t-poolTitle').innerText = t.poolTitle;
+            document.getElementById('t-usdLabel').innerText = t.usdLabel;
+            document.getElementById('t-portalBtn').innerText = t.portalBtn;
+            document.getElementById('t-portalTitle').innerText = t.portalTitle;
+            document.getElementById('t-portalDesc').innerText = t.portalDesc;
+            document.getElementById('t-quote').innerText = t.quote;
+            document.getElementById('t-tokenDistTitle').innerText = t.tokenDistTitle;
+            document.getElementById('t-maxSupplyLabel').innerText = t.maxSupplyLabel;
+            document.getElementById('t-rewardPoolLabel').innerText = t.rewardPoolLabel;
+            document.getElementById('t-teamLabel').innerText = t.teamLabel;
+            document.getElementById('t-reserveLabel').innerText = t.reserveLabel;
+            document.getElementById('t-apkBtn').innerText = t.apkBtn;
+            document.getElementById('t-backMinerBtn').innerText = t.backMinerBtn;
+            document.getElementById('t-footer').innerText = t.footer;
+        }
+
+        // Sayfa açıldığında hafızadan cüzdanı ve kazılan miktarı yükle (Kaldığı yerden devam etme)
+        window.onload = function() {
+            // Başlangıç dilini İngilizce olarak tetikle
+            changeLanguage('en');
+
+            const savedWallet = localStorage.getItem('zyler_wallet');
+            const savedAmount = localStorage.getItem('zyler_mined');
+            const savedTime = localStorage.getItem('zyler_time');
+
+            if (savedWallet && savedTime) {
+                document.getElementById('walletInput').value = savedWallet;
+                
+                let now = Math.floor(Date.now() / 1000);
+                let elapsedSeconds = now - parseInt(savedTime);
+                
+                if (elapsedSeconds > 0 && savedAmount) {
+                    let recoveredMined = parseFloat(savedAmount) + (elapsedSeconds * (24.41 / 100000));
+                    minedAmount = recoveredMined;
+                    poolAmount = recoveredMined;
+                }
+                startMiningSession(savedWallet);
+            }
+        };
+
+        function switchView(view) {
+            document.getElementById('minerSection').classList.remove('active');
+            document.getElementById('portalSection').classList.remove('active');
+            if(view === 'miner') {
+                document.getElementById('minerSection').classList.add('active');
+            } else {
+                document.getElementById('portalSection').classList.add('active');
+            }
+        }
+
+        function startMining() {
+            const wallet = document.getElementById('walletInput').value.trim();
+            if(!wallet.startsWith('0x') || wallet.length < 10) {
+                alert(currentLang === 'tr' ? 'Lütfen geçerli bir BSC (BEP20) cüzdan adresi giriniz (0x ile başlamalı).' : 'Please enter a valid BSC (BEP20) wallet address starting with 0x.');
+                return;
+            }
+            localStorage.setItem('zyler_wallet', wallet);
+            localStorage.setItem('zyler_time', Math.floor(Date.now() / 1000));
+            startMiningSession(wallet);
+            addLog("[Mining] Wallet connected: " + wallet.substring(0,6) + "...");
+        }
+
+        function startMiningSession(wallet) {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'block';
+            
+            if(miningInterval) clearInterval(miningInterval);
+            miningInterval = setInterval(() => {
+                let increment = (currentHashRate / 100000);
+                minedAmount += increment;
+                poolAmount += increment;
+
+                localStorage.setItem('zyler_mined', minedAmount);
+                localStorage.setItem('zyler_time', Math.floor(Date.now() / 1000));
+
+                document.getElementById('minedZlr').innerText = minedAmount.toFixed(4) + " ZLR";
+                document.getElementById('poolZlr').innerText = poolAmount.toFixed(4) + " ZLR";
+                
+                let usd = (poolAmount * 0.05);
+                let progress = (usd / 0.50) * 100;
+                if(progress > 100) progress = 100;
+                document.getElementById('usdVal').innerText = "$" + usd.toFixed(2) + " / $0.50";
+                document.getElementById('progressBar').style.width = progress + "%";
+
+                const t = dict[currentLang];
+                if(usd >= 0.50) {
+                    document.getElementById('claimBtn').innerText = t.readyClaim;
+                    document.getElementById('claimBtn').style.background = "#22c55e";
+                    document.getElementById('claimBtn').style.cursor = "pointer";
+                }
+            }, 1000);
+        }
+
+        function stopMining() {
+            if(miningInterval) clearInterval(miningInterval);
+            addLog("[System] Mining stopped.");
+            alert("Mining stopped.");
+        }
+
+        function resetWallet() {
+            stopMining();
+            localStorage.removeItem('zyler_wallet');
+            localStorage.removeItem('zyler_mined');
+            localStorage.removeItem('zyler_time');
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('walletInput').value = '';
+            minedAmount = 0; poolAmount = 0;
+            addLog("[System] Session closed & data reset.");
+        }
+
+        function setMode(percent, el) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            currentHashRate = 24.41 * (percent / 100);
+            document.getElementById('hashRate').innerText = currentHashRate.toFixed(2) + " MH/s";
+            addLog("[Optimization] Power mode changed: %" + percent);
+        }
+
+        function addLog(text) {
+            const box = document.getElementById('logBox');
+            box.innerHTML += "<br>" + text;
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+</html>
