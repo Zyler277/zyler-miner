@@ -1,4 +1,12 @@
-{
+{  "description": "Zyler Cloud Miner Project",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  
   "background_color": "#ffffff",
   "dir": "ltr",
   "display": "standalone",
