@@ -8,12 +8,5 @@
   "scope": "/",
   "short_name": "Zyler Miner",
   "start_url": "/",
-  "theme_color": "#0b0f19",
-  "icons": [
-    {
-      "src": "./manifest.json",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "theme_color": "#0b0f19"
 }
