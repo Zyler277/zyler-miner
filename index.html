@@ -383,6 +383,18 @@
             box.innerHTML += "<br>" + text;
             box.scrollTop = box.scrollHeight;
         }
-    </script>
+    </script>if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("./sw.js", {
+      scope: "./"
+    })
+    .then(function (registration) {
+      console.log("Zyler Service Worker aktif:", registration.scope);
+    })
+    .catch(function (error) {
+      console.error("Zyler Service Worker hatası:", error);
+    });
+  });
+}
 </body>
 </html>
