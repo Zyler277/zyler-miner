@@ -1,14 +1,28 @@
 {
   "name": "Zyler Miner",
-  "short_name": "Zyler Miner",
+  "short_name": "Zyler",
   "description": "Zyler Cloud Miner Project",
+  "id": "./",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
+  "background_color": "#0b0f19",
   "theme_color": "#0b0f19",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": [
+    "utilities",
+    "finance"
+  ],
+  "prefer_related_applications": false,
   "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
     {
       "src": "./icon.png",
       "sizes": "512x512",
