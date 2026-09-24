@@ -1,28 +1,21 @@
 {
-  "background_color": "#ffffff",
-  "dir": "ltr",
-  "display": "standalone",
   "name": "Zyler Miner",
-  "orientation": "any",
-  "scope": "/",
-  "short_name": "Zyler Miner",
-  "start_url": "/",
+  "short_name": "Zyler",
+  "description": "Zyler Cloud Miner Project",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0f19",
   "theme_color": "#0b0f19",
   "icons": [
     {
-      "src": "https://zyler277.github.io/icon.png",
-      "type": "image/png",
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon.png",
       "sizes": "512x512",
-      "isSquare": true,
-      "isPng": true,
-      "isWebp": false,
-      "isJpg": false,
-      "width": 512,
-      "is512x512": true,
-      "is256x256": false,
-      "is192x192": false
+      "type": "image/png"
     }
-  ],
-  "id": "Zyler Miner",
-  "description": "Zyler Cloud Miner Project"
+  ]
 }
