@@ -325,8 +325,9 @@
             document.getElementById('loginView').style.display = 'none';
             document.getElementById('dashboardView').style.display = 'block';
             
-            if(miningInterval) clearInterval(miningInterval);
-            miningInterval = setInterval(() => {
+            if (miningInterval) clearInterval(miningInterval);
+miningInterval = setInterval(() => {
+  
                 let increment = (currentHashRate / 100000);
                 minedAmount += increment;
                 poolAmount += increment;
