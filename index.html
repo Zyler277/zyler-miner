@@ -353,9 +353,13 @@
         }
 
         function stopMining() {
-            if(miningInterval) clearInterval(miningInterval);
-            addLog("[System] Mining stopped.");
-          
+    if (miningInterval) {
+        clearInterval(miningInterval);
+        miningInterval = null;
+    }
+    addLog("[System] Mining stopped.");
+}
+
         }
 
         function resetWallet() {
