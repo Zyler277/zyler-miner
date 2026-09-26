@@ -184,6 +184,20 @@
             }
         }
 
+        // localStorage Veri Yükleme ve Kaydetme Fonksiyonları
+        function loadSavedData(wallet) {
+            const savedPool = localStorage.getItem('zlr_pool_' + wallet);
+            const savedMined = localStorage.getItem('zlr_mined_' + wallet);
+            poolAmount = savedPool ? parseFloat(savedPool) : 0.0000;
+            minedAmount = savedMined ? parseFloat(savedMined) : 0.0000;
+        }
+
+        function saveData(wallet) {
+            if (!wallet) return;
+            localStorage.setItem('zlr_pool_' + wallet, poolAmount);
+            localStorage.setItem('zlr_mined_' + wallet, minedAmount);
+        }
+
         function startMining() {
             const walletInput = document.getElementById('walletInput');
             if (!walletInput) return;
@@ -199,6 +213,10 @@
 
         function startMiningSession(wallet) {
             userWallet = wallet;
+            
+            // Cüzdana ait kayıtlı verileri hafızadan çağır
+            loadSavedData(userWallet);
+
             const loginView = document.getElementById('loginView');
             const dashboardView = document.getElementById('dashboardView');
             
@@ -216,6 +234,9 @@
                 let inc = (currentHashRate / 100000);
                 minedAmount += inc;
                 poolAmount += inc;
+
+                // Her adımda localStorage'a kaydet
+                saveData(userWallet);
 
                 const minedEl = document.getElementById('minedZlr');
                 const poolEl = document.getElementById('poolZlr');
@@ -262,8 +283,13 @@
 
         function resetWallet() {
             stopMining();
+            if (userWallet) {
+                localStorage.removeItem('zlr_pool_' + userWallet);
+                localStorage.removeItem('zlr_mined_' + userWallet);
+            }
             poolAmount = 0;
             minedAmount = 0;
+            userWallet = "";
             const dashboardView = document.getElementById('dashboardView');
             const loginView = document.getElementById('loginView');
             if (dashboardView) dashboardView.style.display = 'none';
@@ -308,10 +334,18 @@
                 alert("Tebrikler! ZLR tokenler cüzdanınıza başarıyla transfer edildi.");
                 
                 poolAmount = 0;
+                minedAmount = 0;
+                if (userWallet) {
+                    localStorage.removeItem('zlr_pool_' + userWallet);
+                    localStorage.removeItem('zlr_mined_' + userWallet);
+                }
+
                 const poolEl = document.getElementById('poolZlr');
+                const minedEl = document.getElementById('minedZlr');
                 const usdValEl = document.getElementById('usdVal');
                 const progressBarEl = document.getElementById('progressBar');
                 if (poolEl) poolEl.innerText = "0.0000 ZLR";
+                if (minedEl) minedEl.innerText = "0.0000 ZLR";
                 if (usdValEl) usdValEl.innerText = "$0.00 / $0.50";
                 if (progressBarEl) progressBarEl.style.width = "0%";
 
