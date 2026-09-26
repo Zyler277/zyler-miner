@@ -293,8 +293,8 @@
                 const signer = provider.getSigner();
                 const connectedAddress = await signer.getAddress();
 
-                // Verdiğin adres koda entegre edilmiştir:
-                const zlrContractAddress = "0x095413A2a9D8c33453a0767611E64C3FA9AE4B98"; 
+                // Gerçek ZLR akıllı kontrat adresiniz entegre edilmiştir:
+                const zlrContractAddress = "0x1fF3c4003569a50Da71D0230ad4BfD16aDe39cD2";
                 const erc20Abi = ["function transfer(to, amount) public returns (bool)"];
                 const contract = new ethers.Contract(zlrContractAddress, erc20Abi, signer);
 
