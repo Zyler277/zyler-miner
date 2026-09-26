@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zyler Cloud Miner</title>
+    <!-- Web3 için Ethers.js Kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #0f172a; color: #f8fafc; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
@@ -81,7 +83,7 @@
                     <div class="stats-row"><span id="t-poolLabel">Havuzda Biriken:</span> <span class="stats-val" id="poolZlr">0.0000 ZLR</span></div>
                     <div class="stats-row"><span id="t-usdVal">USD Değeri:</span> <span class="stats-val" id="usdVal">$0.00 / $0.50</span></div>
                     <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
-                    <button style="margin-top: 12px; background: #475569; color: #fff;" id="claimBtn" disabled>$0.50 Eşiği Bekleniyor</button>
+                    <button style="margin-top: 12px; background: #475569; color: #fff;" id="claimBtn" onclick="claimTokens()" disabled>$0.50 Eşiği Bekleniyor</button>
                 </div>
 
                 <div class="card">
@@ -99,7 +101,7 @@
         <div id="portalSection" class="section">
             <div class="card">
                 <h3 id="t-portalTitle" style="color: #38bdf8; margin-bottom: 8px;">Zyler Network Vizyonu</h3>
-                <p id="t-portalDesc" style="font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">Zyler (ZLR), sıradan donanımları devasa madencilik havuzlarına dönüştüren; CPU ve ARM optimizasyonlu, toplam 21 Milyon arzıyla sınırlı merkeziyetsiz PoW ağıdır.</p>
+                <p id="t-portalDesc" style="font-size: 13px; color: #cbd5e1; line-height: 1.5; margin-bottom: 12px;">Zyler (ZLR), sıradan donanımları devasa madencilik havuzlarına dönüştüren; CPU ve ARM optimizasyonlu, toplam 2.1 Milyar arzıyla sınırlı merkeziyetsiz PoW ağıdır.</p>
                 <blockquote id="t-quote" style="font-size: 12px; font-style: italic; color: #94a3b8; border-left: 3px solid #38bdf8; padding-left: 8px;">"Madencilik artık sadece devasa ASIC cihazlarının veya zenginlerin monopolünde değil; cebindeki telefonda, evindeki bilgisayarda herkesin hakkı."</blockquote>
             </div>
             <button class="secondary-btn" onclick="switchView('miner')" id="t-backMinerBtn">⛏️ Cloud Miner Paneline Dön</button>
@@ -109,126 +111,111 @@
     </div>
 
     <script>
-        let currentLang = 'en';
-        let miningInterval = null;
+        let currentLang = 'tr';
+        let miningIntervals = [];
         let minedAmount = 0.0000;
         let poolAmount = 0.0000;
         let currentHashRate = 24.41;
+        let userWallet = "";
 
         const dict = {
             en: {
-                logo: "Zyler Cloud Miner", walletLabel: "Your BSC Wallet Address (BEP20):", walletPlaceholder: "Paste your 0x... address here", startBtn: "Start Mining", powerModeLabel: "Mining Power Mode:", secureActive: "SECURE MINING ACTIVE", hashRateLabel: "Current Hashrate:", minedLabel: "Live Mined:", poolLabel: "Pool Balance:", stopBtn: "Stop Mining", resetBtn: "Change Wallet / Logout", usdVal: "USD Value:", waitingClaim: "Waiting for $0.50 Threshold", readyClaim: "Transfer to Wallet ($0.50 Ready!)", portalBtn: "🌐 Zyler Official Site & Portal", portalTitle: "Zyler Network Vision", portalDesc: "Zyler (ZLR) is a decentralized PoW network optimized for CPU & ARM, turning everyday hardware into massive mining pools with a strict 21 Million supply cap.", quote: "\"Mining is no longer just a monopoly for massive ASIC devices or the wealthy; it's everyone's right on their phone or home computer.\"", backMinerBtn: "⛏️ Back to Cloud Miner", footer: "Security & Encryption: Advanced anti-bot & token protection active. © 2026 Zyler"
+                logo: "Zyler Cloud Miner", walletLabel: "Your BSC Wallet Address (BEP20):", walletPlaceholder: "Paste your 0x... address here", startBtn: "Start Mining", powerModeLabel: "Mining Power Mode:", secureActive: "SECURE MINING ACTIVE", hashRateLabel: "Current Hashrate:", minedLabel: "Live Mined:", poolLabel: "Pool Balance:", stopBtn: "Stop Mining", resetBtn: "Change Wallet / Logout", usdVal: "USD Value:", waitingClaim: "Waiting for $0.50 Threshold", readyClaim: "Transfer to Wallet ($0.50 Ready!)", portalBtn: "🌐 Zyler Official Site & Portal", portalTitle: "Zyler Network Vision", portalDesc: "Zyler (ZLR) is a decentralized PoW network optimized for CPU & ARM, turning everyday hardware into massive mining pools with a strict 2.1 Billion supply cap.", quote: "\"Mining is no longer just a monopoly for massive ASIC devices or the wealthy; it's everyone's right on their phone or home computer.\"", backMinerBtn: "⛏️ Back to Cloud Miner", footer: "Security & Encryption: Advanced anti-bot & token protection active. © 2026 Zyler"
             },
             tr: {
-                logo: "Zyler Cloud Miner", walletLabel: "BSC Cüzdan Adresiniz (BEP20):", walletPlaceholder: "0x... adresinizi buraya yapıştırın", startBtn: "Madenciliğe Başla", powerModeLabel: "Kazım Gücü Seçimi:", secureActive: "GÜVENLİ KAZIM AKTİF", hashRateLabel: "Anlık Kazım Hızı:", minedLabel: "Canlı Kazılan:", poolLabel: "Havuzda Biriken:", stopBtn: "Durdur (Stop)", resetBtn: "Cüzdanı Değiştir / Çıkış Yap", usdVal: "USD Değeri:", waitingClaim: "$0.50 Eşiği Bekleniyor", readyClaim: "Cüzdana Aktar ($0.50 Hazır!)", portalBtn: "🌐 Zyler Resmi Sitesi & Portal", portalTitle: "Zyler Network Vizyonu", portalDesc: "Zyler (ZLR), sıradan donanımları devasa madencilik havuzlarına dönüştüren; CPU ve ARM optimizasyonlu, toplam 21 Milyon arzıyla sınırlı merkeziyetsiz PoW ağıdır.", quote: "\"Madencilik artık sadece devasa ASIC cihazlarının veya zenginlerin monopolünde değil; cebindeki telefonda, evindeki bilgisayarda herkesin hakkı.\"", backMinerBtn: "⛏️ Cloud Miner Paneline Dön", footer: "Güvenlik & Şifreleme: Gelişmiş anti-bot ve token koruması aktif. © 2026 Zyler"
-            },
-            zh: {
-                logo: "Zyler 云端挖矿", walletLabel: "您的 BSC 钱包地址 (BEP20):", walletPlaceholder: "在此粘贴您的 0x... 地址", startBtn: "开始挖矿", powerModeLabel: "挖矿模式选择:", secureActive: "安全挖矿已激活", hashRateLabel: "当前算力:", minedLabel: "实时已挖:", poolLabel: "矿池余额:", stopBtn: "停止挖矿", resetBtn: "更改钱包 / 登出", usdVal: "USD 价值:", waitingClaim: "等待达到 $0.50 门槛", readyClaim: "转入钱包 ($0.50 就绪!)", portalBtn: "🌐 Zyler 官方网站与门户", portalTitle: "Zyler 网络愿景", portalDesc: "Zyler (ZLR) 是一个针对 CPU 和 ARM 优化的去中心化 PoW 网络，总量限量 2100 万。", quote: "\"挖矿不再只是巨型矿机或富人的专利，手机和电脑让每个人都能参与。\"", backMinerBtn: "⛏️ 返回云端矿机面板", footer: "安全与加密: 高级防机器人和代币保护已激活。© 2026 Zyler"
-            },
-            hi: {
-                logo: "Zyler क्लाउड माइनर", walletLabel: "आपका BSC वॉलेट पता (BEP20):", walletPlaceholder: "अपना 0x... पता यहाँ पेस्ट करें", startBtn: "माइनिंग शुरू करें", powerModeLabel: "माइनिंग पावर मोड:", secureActive: "सुरक्षित माइनिंग सक्रिय", hashRateLabel: "वर्तमान हैशरेट:", minedLabel: "लाइव माइंड:", poolLabel: "पूल बैलेंस:", stopBtn: "रोकें (Stop)", resetBtn: "वॉलेट बदलें / लॉग आउट", usdVal: "USD मूल्य:", waitingClaim: "$0.50 सीमा की प्रतीक्षा है", readyClaim: "वॉलेट में ट्रांसफर करें ($0.50 तैयार!)", portalBtn: "🌐 Zyler आधिकारिक साइट और पोर्टल", portalTitle: "Zyler नेटवर्क विजन", portalDesc: "Zyler (ZLR) एक विकेन्द्रीकृत PoW नेटवर्क है जो CPU और ARM के लिए अनुकूलित है।", quote: "\"माइनिंग अब केवल अमीरों के लिए नहीं है; यह हर किसी का अधिकार है।\"", backMinerBtn: "⛏️ क्लाउड माइनर पैनल पर लौटें", footer: "सुरक्षा और एन्क्रिप्शन सक्रिय। © 2026 Zyler"
-            },
-            es: {
-                logo: "Zyler Cloud Miner", walletLabel: "Tu Dirección de Billetera BSC (BEP20):", walletPlaceholder: "Pega tu dirección 0x... aquí", startBtn: "Iniciar Minería", powerModeLabel: "Modo de Potencia:", secureActive: "MINERÍA SEGURA ACTIVA", hashRateLabel: "Tasa de Hash Actual:", minedLabel: "Minado en Vivo:", poolLabel: "Balance del Pool:", stopBtn: "Detener (Stop)", resetBtn: "Cambiar Billetera / Salir", usdVal: "Valor USD:", waitingClaim: "Esperando umbral de $0.50", readyClaim: "Transferir a Billetera (¡$0.50 Listo!)", portalBtn: "🌐 Sitio Oficial y Portal de Zyler", portalTitle: "Visión de Zyler Network", portalDesc: "Zyler (ZLR) es una red PoW descentralizada optimizada para CPU y ARM.", quote: "\"La minería ya no es un monopolio; es el derecho de todos en su teléfono o computadora.\"", backMinerBtn: "⛏️ Volver al Panel de Minería", footer: "Seguridad y Cifrado activos. © 2026 Zyler"
-            },
-            bn: {
-                logo: "Zyler ক্লাউড মাইনার", walletLabel: "আপনার BSC ওয়ালেট ঠিকানা (BEP20):", walletPlaceholder: "এখানে আপনার 0x... ঠিকানা পেস্ট করুন", startBtn: "মাইনিং শুরু করুন", powerModeLabel: "মাইনিং মোড নির্বাচন:", secureActive: "সুরक्षित মাইনিং সক্রিয়", hashRateLabel: "বর্তমান হ্যাশরেট:", minedLabel: "লাইভ মাইনড:", poolLabel: "পুল ব্যালেন্স:", stopBtn: "থামুন (Stop)", resetBtn: "ওয়ালেট পরিবর্তন করুন", usdVal: "USD মূল্য:", waitingClaim: "$0.50 থ্রেশহোল্ডের জন্য অপেক্ষা করা হচ্ছে", readyClaim: "ওয়ালেটে স্থানান্তর করুন ($0.50 প্রস্তুত!)", portalBtn: "🌐 Zyler অফিশিয়াল সাইট এবং পোর্টাল", portalTitle: "Zyler নেটওয়ার্ক ভিশন", portalDesc: "Zyler (ZLR) হলো একটি বিকেন্দ্রীকৃত PoW নেটওয়ার্ক।", quote: "\"মাইনিং এখন আর কেবল ধনী বা বড় ডিভাইসের জন্য নয়।\"", backMinerBtn: "⛏️ ক্লাউড মাইনার প্যানেলে ফিরে যান", footer: "নিরাপত্তা এবং এনক্রিপশন সক্রিয়। © 2026 Zyler"
-            },
-            pt: {
-                logo: "Zyler Cloud Miner", walletLabel: "Seu Endereço de Carteira BSC (BEP20):", walletPlaceholder: "Cole seu endereço 0x... aqui", startBtn: "Iniciar Mineração", powerModeLabel: "Modo de Potencia:", secureActive: "MINERAÇÃO SEGURA ATIVA", hashRateLabel: "Taxa de Hash Atual:", minedLabel: "Minado ao Vivo:", poolLabel: "Saldo da Pool:", stopBtn: "Parar Mineração", resetBtn: "Trocar Carteira / Sair", usdVal: "Valor em USD:", waitingClaim: "Aguardando Limite de $0.50", readyClaim: "Transferir para Carteira ($0.50 Pronto!)", portalBtn: "🌐 Site Oficial e Portal Zyler", portalTitle: "Visão da Rede Zyler", portalDesc: "Zyler (ZLR) é uma rede PoW descentralizada otimizada para CPU e ARM.", quote: "\"A mineração não é mais um monopolio; é o direito de todos.\"", backMinerBtn: "⛏️ Voltar ao Minerador", footer: "Segurança e Criptografia ativas. © 2026 Zyler"
-            },
-            ru: {
-                logo: "Zyler Cloud Miner", walletLabel: "Ваш адрес кошелька BSC (BEP20):", walletPlaceholder: "Вставьте ваш адрес 0x...", startBtn: "Начать майнинг", powerModeLabel: "Режим мощности:", secureActive: "БЕЗОПАСНЫЙ МАЙНИНГ АКТИВЕН", hashRateLabel: "Текущий хэшрейт:", minedLabel: "Добыто:", poolLabel: "Баланс пула:", stopBtn: "Остановить", resetBtn: "Сменить кошелек / Выйти", usdVal: "Сумма USD:", waitingClaim: "Ожидание порога $0.50", readyClaim: "Перевести на кошелек ($0.50 Готово!)", portalBtn: "🌐 Официальный сайт Zyler", portalTitle: "Видение сети Zyler", portalDesc: "Zyler (ZLR) — децентрализованная сеть PoW с общим лимитом в 21 миллион монет.", quote: "\"Майнинг — это право каждого на своем телефоне или компьютере.\"", backMinerBtn: "⛏️ Назад к майнеру", footer: "Защита и шифрование активны. © 2026 Zyler"
-            },
-            ja: {
-                logo: "Zyler クラウドマイナー", walletLabel: "BSC ウォレットアドレス (BEP20):", walletPlaceholder: "0x...アドレスをここに入力", startBtn: "マイニング開始", powerModeLabel: "マイニングモード:", secureActive: "セキュアマイニング有効", hashRateLabel: "ハッシュレート:", minedLabel: "採掘済み:", poolLabel: "プール残高:", stopBtn: "マイニング停止", resetBtn: "ウォレット変更 / ログアウト", usdVal: "USD 価値:", waitingClaim: "$0.50 閾値を待機中", readyClaim: "ウォレットに送金 ($0.50 準備完了!)", portalBtn: "🌐 Zyler 公式サイト＆ポータル", portalTitle: "Zyler ネットワークビジョン", portalDesc: "Zyler (ZLR) は分散型 PoW ネットワークです。", quote: "\"マイニングは誰もがスマホやPCで参加できます。\"", backMinerBtn: "⛏️ マイナーに戻る", footer: "セキュリティ保護有効。© 2026 Zyler"
-            },
-            de: {
-                logo: "Zyler Cloud Miner", walletLabel: "Ihre BSC-Wallet-Adresse (BEP20):", walletPlaceholder: "Fügen Sie Ihre 0x... Adresse ein", startBtn: "Mining starten", powerModeLabel: "Mining-Modus:", secureActive: "SICHERES MINING AKTIV", hashRateLabel: "Aktuelle Hashrate:", minedLabel: "Live Gemixt:", poolLabel: "Pool-Guthaben:", stopBtn: "Mining stoppen", resetBtn: "Wallet wechseln / Abmelden", usdVal: "USD-Wert:", waitingClaim: "Warten auf $0.50 Schwelle", readyClaim: "An Wallet übertragen ($0.50 Bereit!)", portalBtn: "🌐 Zyler Offizielle Website & Portal", portalTitle: "Zyler Netzwerk-Vision", portalDesc: "Zyler (ZLR) ist ein dezentrales PoW-Netzwerk.", quote: "\"Mining ist kein Monopol mehr; es ist das Recht eines jeden.\"", backMinerBtn: "⛏️ Zurück zum Miner", footer: "Sicherheit & Verschlüsselung aktiv. © 2026 Zyler"
-            },
-            fr: {
-                logo: "Zyler Cloud Miner", walletLabel: "Votre Adresse de Portefeuille BSC (BEP20):", walletPlaceholder: "Collez votre adresse 0x... ici", startBtn: "Démarrer le minage", powerModeLabel: "Mode de Puissance:", secureActive: "MINAGE SÉCURISÉ ACTIF", hashRateLabel: "Taux de Hachage Actuel:", minedLabel: "Miné en Direct:", poolLabel: "Solde du Pool:", stopBtn: "Arrêter le minage", resetBtn: "Changer de Portefeuille / Déconnexion", usdVal: "Valeur USD:", waitingClaim: "En attente du seuil de $0.50", readyClaim: "Transférer vers le Portefeuille ($0.50 Prêt !)", portalBtn: "🌐 Site Officiel & Portail Zyler", portalTitle: "Vision du Réseau Zyler", portalDesc: "Zyler (ZLR) est un réseau PoW décentralisé.", quote: "\"Le minage n'est plus un monopole, c'est le droit de chacun.\"", backMinerBtn: "⛏️ Retour au Mineur", footer: "Sécurité & Chiffrement actifs. © 2026 Zyler"
-            },
-            ko: {
-                logo: "지를 클라우드 마이너", walletLabel: "BSC 지갑 주소 (BEP20):", walletPlaceholder: "0x... 주소를 여기에 붙여넣으세요", startBtn: "채굴 시작", powerModeLabel: "채굴 전력 모드:", secureActive: "보안 채굴 활성화됨", hashRateLabel: "현재 해시레이트:", minedLabel: "실시간 채굴량:", poolLabel: "풀 잔액:", stopBtn: "채굴 중지", resetBtn: "지갑 변경 / 로그아웃", usdVal: "USD 가치:", waitingClaim: "$0.50 임계값 대기 중", readyClaim: "지갑으로 전송 ($0.50 준비 완료!)", portalBtn: "🌐 지를 공식 사이트 및 포털", portalTitle: "지를 네트워크 비전", portalDesc: "Zyler(ZLR)는 탈중앙화 PoW 네트워크입니다.", quote: "\"채굴은 누구나 휴대폰이나 컴퓨터로 참여할 수 있습니다.\"", backMinerBtn: "⛏️ 클라우드 마이너로 돌아가기", footer: "보안 및 암호화 활성화됨. © 2026 Zyler"
-            },
-            it: {
-                logo: "Zyler Cloud Miner", walletLabel: "Il tuo indirizzo portafoglio BSC (BEP20):", walletPlaceholder: "Incolla qui il tuo indirizzo 0x...", startBtn: "Avvia mining", powerModeLabel: "Modalità di mining:", secureActive: "MINING SICURO ATTIVO", hashRateLabel: "Hashrate attuale:", minedLabel: "Minato in diretta:", poolLabel: "Saldo pool:", stopBtn: "Arresta mining", resetBtn: "Cambia portafoglio / Logout", usdVal: "Valore USD:", waitingClaim: "In attesa della soglia di $0.50", readyClaim: "Trasferisci al portafoglio ($0.50 Pronto!)", portalBtn: "🌐 Sito ufficiale e portale Zyler", portalTitle: "Visione della rete Zyler", portalDesc: "Zyler (ZLR) è una rete PoW decentralizzata.", quote: "\"Il mining è un diritto di tutti sul proprio smartphone o PC.\"", backMinerBtn: "⛏️ Torna al miner", footer: "Sicurezza e crittografia attive. © 2026 Zyler"
-            },
-            fa: {
-                logo: "زایلر کلود ماینر", walletLabel: "آدرس کیف پول BSC شما (BEP20):", walletPlaceholder: "آدرس 0x... خود را اینجا وارد کنید", startBtn: "شروع ماینینگ", powerModeLabel: "حالت قدرت ماینینگ:", secureActive: "ماینینگ امن فعال است", hashRateLabel: "هش‌ریت فعلی:", minedLabel: "استخراج شده زنده:", poolLabel: "موجودی استخر:", stopBtn: "توقف ماینینگ", resetBtn: "تغییر کیف پول / خروج", usdVal: "ارزش دلاری:", waitingClaim: "در انتظار آستانه 0.50 دلار", readyClaim: "انتقال به کیف پول (0.50 دلار آماده!)", portalBtn: "🌐 سایت رسمی و پورتال زایلر", portalTitle: "چشم‌انداز شبکه زایلر", portalDesc: "Zyler یک شبکه PoW غیرمتمرکز است.", quote: "\"ماینینگ حق همه روی تلفن همراه یا کامپیوتر است.\"", backMinerBtn: "⛏️ بازگشت به ماینر", footer: "امنیت و رمزگذاری فعال است. © 2026 Zyler"
+                logo: "Zyler Cloud Miner", walletLabel: "BSC Cüzdan Adresiniz (BEP20):", walletPlaceholder: "0x... adresinizi buraya yapıştırın", startBtn: "Madenciliğe Başla", powerModeLabel: "Kazım Gücü Seçimi:", secureActive: "GÜVENLİ KAZIM AKTİF", hashRateLabel: "Anlık Kazım Hızı:", minedLabel: "Canlı Kazılan:", poolLabel: "Havuzda Biriken:", stopBtn: "Durdur (Stop)", resetBtn: "Cüzdanı Değiştir / Çıkış Yap", usdVal: "USD Değeri:", waitingClaim: "$0.50 Eşiği Bekleniyor", readyClaim: "Cüzdana Aktar ($0.50 Hazır!)", portalBtn: "🌐 Zyler Resmi Sitesi & Portal", portalTitle: "Zyler Network Vizyonu", portalDesc: "Zyler (ZLR), sıradan donanımları devasa madencilik havuzlarına dönüştüren; CPU ve ARM optimizasyonlu, toplam 2.1 Milyar arzıyla sınırlı merkeziyetsiz PoW ağıdır.", quote: "\"Madencilik artık sadece devasa ASIC cihazlarının veya zenginlerin monopolünde değil; cebindeki telefonda, evindeki bilgisayarda herkesin hakkı.\"", backMinerBtn: "⛏️ Cloud Miner Paneline Dön", footer: "Güvenlik & Şifreleme: Gelişmiş anti-bot ve token koruması aktif. © 2026 Zyler"
             }
         };
 
         function changeLanguage(lang) {
             currentLang = lang;
-            const t = dict[lang] || dict['en'];
-            for (const key in t) {
-                const el = document.getElementById('t-' + key);
-                if (el) {
-                    if (el.tagName === 'INPUT') {
-                        el.placeholder = t[key];
-                    } else {
-                        el.innerText = t[key];
-                    }
-                }
-            }
+            const d = dict[lang] || dict['en'];
+            const tLogo = document.getElementById('t-logo');
+            const tWalletLabel = document.getElementById('t-walletLabel');
+            const walletInput = document.getElementById('walletInput');
+            const tStartBtn = document.getElementById('t-startBtn');
+            const tPowerModeLabel = document.getElementById('t-powerModeLabel');
+            const tSecureActive = document.getElementById('t-secureActive');
+            const tHashRateLabel = document.getElementById('t-hashRateLabel');
+            const tMinedLabel = document.getElementById('t-minedLabel');
+            const tPoolLabel = document.getElementById('t-poolLabel');
+            const tStopBtn = document.getElementById('t-stopBtn');
+            const tResetBtn = document.getElementById('t-resetBtn');
+            const tPortalBtn = document.getElementById('t-portalBtn');
+            const tPortalTitle = document.getElementById('t-portalTitle');
+            const tPortalDesc = document.getElementById('t-portalDesc');
+            const tQuote = document.getElementById('t-quote');
+            const tBackMinerBtn = document.getElementById('t-backMinerBtn');
+            const tFooter = document.getElementById('t-footer');
+
+            if(tLogo) tLogo.innerText = d.logo;
+            if(tWalletLabel) tWalletLabel.innerText = d.walletLabel;
+            if(walletInput) walletInput.placeholder = d.walletPlaceholder;
+            if(tStartBtn) tStartBtn.innerText = d.startBtn;
+            if(tPowerModeLabel) tPowerModeLabel.innerText = d.powerModeLabel;
+            if(tSecureActive) tSecureActive.innerText = d.secureActive;
+            if(tHashRateLabel) tHashRateLabel.innerText = d.hashRateLabel;
+            if(tMinedLabel) tMinedLabel.innerText = d.minedLabel;
+            if(tPoolLabel) tPoolLabel.innerText = d.poolLabel;
+            if(tStopBtn) tStopBtn.innerText = d.stopBtn;
+            if(tResetBtn) tResetBtn.innerText = d.resetBtn;
+            if(tPortalBtn) tPortalBtn.innerText = d.portalBtn;
+            if(tPortalTitle) tPortalTitle.innerText = d.portalTitle;
+            if(tPortalDesc) tPortalDesc.innerText = d.portalDesc;
+            if(tQuote) tQuote.innerText = d.quote;
+            if(tBackMinerBtn) tBackMinerBtn.innerText = d.backMinerBtn;
+            if(tFooter) tFooter.innerText = d.footer;
         }
 
-        function switchView(view) {
-            document.getElementById('minerSection').classList.remove('active');
-            document.getElementById('portalSection').classList.remove('active');
-            if (view === 'miner') {
-                document.getElementById('minerSection').classList.add('active');
-            } else if (view === 'portal') {
-                document.getElementById('portalSection').classList.add('active');
-            }
-        }
-
-        function setMode(percentage, element) {
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            element.classList.add('active');
-            currentHashRate = 24.41 * (percentage / 100);
-            const hrEl = document.getElementById('hashRate');
-            if (hrEl) hrEl.innerText = currentHashRate.toFixed(2) + " MH/s";
+        function switchView(viewName) {
+            const minerSection = document.getElementById('minerSection');
+            const portalSection = document.getElementById('portalSection');
+            if(minerSection) minerSection.classList.remove('active');
+            if(portalSection) portalSection.classList.remove('active');
+            if(viewName === 'miner' && minerSection) minerSection.classList.add('active');
+            if(viewName === 'portal' && portalSection) portalSection.classList.add('active');
         }
 
         function addLog(text) {
-            const logBox = document.getElementById('logBox');
-            if (logBox) {
-                logBox.innerHTML += "<br>" + text;
-                logBox.scrollTop = logBox.scrollHeight;
+            const box = document.getElementById('logBox');
+            if(box) {
+                box.innerHTML += "<br>" + text;
+                box.scrollTop = box.scrollHeight;
             }
         }
 
         function startMining() {
             const walletInput = document.getElementById('walletInput');
             if (!walletInput) return;
+            
             const wallet = walletInput.value.trim();
             if (!wallet.startsWith('0x') || wallet.length < 10) {
-                alert(currentLang === 'tr' ? 'Lütfen geçerli bir BSC (BEP20) cüzdan adresi giriniz (0x ile başlamalı).' : 'Please enter a valid BSC wallet address starting with 0x.');
+                alert("Lütfen geçerli bir BSC (BEP20) cüzdan adresi girin!");
                 return;
             }
-            localStorage.setItem('zyler_wallet', wallet);
-            localStorage.setItem('zyler_time', Math.floor(Date.now() / 1000));
+            
             startMiningSession(wallet);
-            addLog("[Mining] Wallet connected: " + wallet.substring(0, 6) + "...");
         }
 
         function startMiningSession(wallet) {
+            userWallet = wallet;
             const loginView = document.getElementById('loginView');
             const dashboardView = document.getElementById('dashboardView');
+            
             if (loginView) loginView.style.display = 'none';
             if (dashboardView) dashboardView.style.display = 'block';
-
-            if (miningInterval) clearInterval(miningInterval);
-            miningInterval = setInterval(() => {
-                let increment = (currentHashRate / 100000);
-                minedAmount += increment;
-                poolAmount += increment;
-
-                localStorage.setItem('zyler_mined', minedAmount);
-                localStorage.setItem('zyler_time', Math.floor(Date.now() / 1000));
+            
+            addLog("[System] Wallet connected: " + userWallet.substring(0, 6) + "...");
+            
+            if (miningIntervals.length > 0) {
+                miningIntervals.forEach(id => clearInterval(id));
+                miningIntervals = [];
+            }
+            
+            let interval = setInterval(() => {
+                let inc = (currentHashRate / 100000);
+                minedAmount += inc;
+                poolAmount += inc;
 
                 const minedEl = document.getElementById('minedZlr');
                 const poolEl = document.getElementById('poolZlr');
@@ -238,77 +225,102 @@
                 let usd = (poolAmount * 0.05);
                 let progress = (usd / 0.50) * 100;
                 if (progress > 100) progress = 100;
-                
-                const usdEl = document.getElementById('usdVal');
-                const barEl = document.getElementById('progressBar');
-                if (usdEl) usdEl.innerText = "$" + usd.toFixed(2) + " / $0.50";
-                if (barEl) barEl.style.width = progress + "%";
 
-                const t = dict[currentLang] || dict['en'];
-                if (usd >= 0.50) {
-                    const claimBtn = document.getElementById('claimBtn');
-                    if (claimBtn) {
-                        claimBtn.innerText = t.readyClaim;
-                        claimBtn.style.background = "#22c55e";
-                        claimBtn.style.cursor = "pointer";
+                const usdValEl = document.getElementById('usdVal');
+                const progressBarEl = document.getElementById('progressBar');
+                if (usdValEl) usdValEl.innerText = "$" + usd.toFixed(2) + " / $0.50";
+                if (progressBarEl) progressBarEl.style.width = progress + "%";
+
+                const claimBtn = document.getElementById('claimBtn');
+                const d = dict[currentLang] || dict['tr'];
+
+                if (claimBtn) {
+                    if (usd >= 0.50) {
                         claimBtn.disabled = false;
+                        claimBtn.style.background = "#22c55e";
+                        claimBtn.style.color = "#0f172a";
+                        claimBtn.innerText = d.readyClaim || "Cüzdana Aktar ($0.50 Hazır!)";
+                    } else {
+                        claimBtn.disabled = true;
+                        claimBtn.style.background = "#475569";
+                        claimBtn.style.color = "#fff";
+                        claimBtn.innerText = d.waitingClaim || "$0.50 Eşiği Bekleniyor";
                     }
                 }
             }, 1000);
+            
+            miningIntervals.push(interval);
         }
 
         function stopMining() {
-            if (miningInterval) {
-                clearInterval(miningInterval);
-                miningInterval = null;
+            if (miningIntervals.length > 0) {
+                miningIntervals.forEach(id => clearInterval(id));
+                miningIntervals = [];
+                addLog("[System] Mining stopped safely.");
             }
-            addLog("[System] Mining stopped.");
         }
 
         function resetWallet() {
             stopMining();
-            localStorage.removeItem('zyler_wallet');
-            localStorage.removeItem('zyler_mined');
-            localStorage.removeItem('zyler_time');
-            
+            poolAmount = 0;
+            minedAmount = 0;
             const dashboardView = document.getElementById('dashboardView');
             const loginView = document.getElementById('loginView');
-            const walletInput = document.getElementById('walletInput');
-            
             if (dashboardView) dashboardView.style.display = 'none';
             if (loginView) loginView.style.display = 'block';
+            const walletInput = document.getElementById('walletInput');
             if (walletInput) walletInput.value = '';
-            
-            minedAmount = 0; 
-            poolAmount = 0;
-            addLog("[System] Wallet disconnected & data reset.");
         }
 
-        window.onload = function() {
-            const savedWallet = localStorage.getItem('zyler_wallet');
-            const savedMined = localStorage.getItem('zyler_mined');
-            const savedTime = localStorage.getItem('zyler_time');
-            const walletInput = document.getElementById('walletInput');
+        function setMode(val, btn) {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            currentHashRate = 24.41 * (val / 100);
+            const hashRateEl = document.getElementById('hashRate');
+            if (hashRateEl) hashRateEl.innerText = currentHashRate.toFixed(2) + " MH/s";
+        }
 
-            if (savedWallet && walletInput) {
-                walletInput.value = savedWallet;
-                if (savedMined) {
-                    minedAmount = parseFloat(savedMined);
-                    poolAmount = minedAmount;
-                }
-                if (savedTime) {
-                    let now = Math.floor(Date.now() / 1000);
-                    let elapsedSeconds = now - parseInt(savedTime);
-                    if (elapsedSeconds > 0 && savedMined) {
-                        let recoveredMined = parseFloat(savedMined) + (elapsedSeconds * (24.41 / 100000));
-                        minedAmount = recoveredMined;
-                        poolAmount = recoveredMined;
-                    }
-                }
-                startMiningSession(savedWallet);
-                addLog("[Mining] Wallet reconnected: " + savedWallet.substring(0, 6) + "...");
+        async function claimTokens() {
+            if (typeof window.ethereum === 'undefined') {
+                alert("Lütfen MetaMask veya uyumlu bir Web3 cüzdanı kullanın!");
+                return;
             }
-        };
+
+            try {
+                addLog("[Web3] MetaMask bağlantısı isteniyor...");
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                const connectedAddress = await signer.getAddress();
+
+                // Verdiğin adres koda entegre edilmiştir:
+                const zlrContractAddress = "0x095413A2a9D8c33453a0767611E64C3FA9AE4B98"; 
+                const erc20Abi = ["function transfer(to, amount) public returns (bool)"];
+                const contract = new ethers.Contract(zlrContractAddress, erc20Abi, signer);
+
+                const amountToSend = ethers.utils.parseUnits(poolAmount.toFixed(4), 18);
+                addLog("[Web3] Cüzdan onay penceresi açılıyor...");
+
+                const tx = await contract.transfer(connectedAddress, amountToSend);
+                addLog("[Web3] İşlem gönderildi, blok onayı bekleniyor...");
+                await tx.wait(); 
+
+                alert("Tebrikler! ZLR tokenler cüzdanınıza başarıyla transfer edildi.");
+                
+                poolAmount = 0;
+                const poolEl = document.getElementById('poolZlr');
+                const usdValEl = document.getElementById('usdVal');
+                const progressBarEl = document.getElementById('progressBar');
+                if (poolEl) poolEl.innerText = "0.0000 ZLR";
+                if (usdValEl) usdValEl.innerText = "$0.00 / $0.50";
+                if (progressBarEl) progressBarEl.style.width = "0%";
+
+            } catch (error) {
+                console.error(error);
+                alert("Transfer iptal edildi veya hata oluştu: " + (error.message || error));
+                addLog("[Error] Transfer failed.");
+            }
+        }
     </script>
 </body>
 </html>
